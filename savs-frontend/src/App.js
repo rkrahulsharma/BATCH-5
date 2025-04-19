@@ -6,7 +6,6 @@ import StudentSignup from './components/StudentSignup';
 
 import LoginPage from './components/LoginPage.jsx'
 import AdminLogin from './components/AdminLogin';
-
 import StudentLogin from './components/StudentLogin';
 import SuperAdminPanel from './pages/SuperAdminPanel';
 import StudentDashboard from "./pages/StudentDashboard";
@@ -23,7 +22,7 @@ function App() {
         <Route path="/signup/student" element={<StudentSignup />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        
+        <Route path="/super-admin-panel" element={<SuperAdminPanel />} />
         <Route path="/student-login" element={<LoginPage />} />
 <Route path="/admin-login" element={<LoginPage />} />
 <Route path="/super-admin" element={<SuperAdminPanel />} />
