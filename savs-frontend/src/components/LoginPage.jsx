@@ -25,12 +25,12 @@ const LoginPage = () => {
       alert(res.data.message);
 
       // Redirect based on role
-      if (formData.role === "admin") {
-        navigate("/admin/dashboard");
+      if (res.data.user.role === 'superadmin') {
+        navigate('/super-admin-panel');
       } else {
-        navigate("/student/dashboard");
+        navigate('/admin/dashboard');
       }
-
+      
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
     }
