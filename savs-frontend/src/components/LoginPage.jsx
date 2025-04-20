@@ -18,27 +18,31 @@ const LoginPage = () => {
     }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await axios.post("http://localhost:5000/api/auth/login", formData);
-    alert(res.data.message);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", formData);
+      alert(res.data.message);
+  
+      const user = res.data.user; // Add this line
+  
+      // Redirect based on role
+      localStorage.setItem("userData", JSON.stringify(user));
 
-    const user = res.data.user; // ✅ get the user object from response
-
-    // Redirect based on role
-    if (user.role === 'superadmin') {
-      navigate('/super-admin-panel');
-    } else if (user.role === 'admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/admin/dashboard');
+      if (user.role === 'superadmin') {
+        navigate('/super-admin-panel');
+      } else if (user.role === 'admin') {
+        localStorage.setItem("adminData", JSON.stringify(user)); // store admin info
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/student/dashboard');
+      }
+  
+    } catch (err) {
+      alert(err.response?.data?.message || "Login failed");
     }
-    
-  } catch (err) {
-    alert(err.response?.data?.message || "Login failed");
-  }
-};
+  };
+  
 
   return (
     <div className="signup-background">

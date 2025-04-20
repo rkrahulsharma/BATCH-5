@@ -1,11 +1,15 @@
-// pages/AdminDashboard.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
-const AdminDashboard = ({ currentAdmin }) => {
+const AdminDashboard = () => {
+  const location = useLocation();
+  const currentAdmin = location.state?.currentAdmin;
+
   const [pendingStudents, setPendingStudents] = useState([]);
 
   useEffect(() => {
+    if (!currentAdmin) return;
     axios.get('/api/pending-students', {
       params: {
         department: currentAdmin.department,
