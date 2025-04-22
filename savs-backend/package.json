@@ -95,6 +95,7 @@
     "parseurl": "^1.3.3",
     "path-is-absolute": "^1.0.1",
     "path-to-regexp": "^8.2.0",
+    "pdfkit": "^0.17.0",
     "process-nextick-args": "^2.0.1",
     "proxy-addr": "^2.0.7",
     "qs": "^6.14.0",

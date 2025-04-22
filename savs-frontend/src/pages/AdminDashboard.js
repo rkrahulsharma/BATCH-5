@@ -4,6 +4,7 @@ import { Container, Row, Col, Button, Card, ListGroup, Navbar, Nav, Modal, Form 
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
+  const [approvedStudents, setApprovedStudents] = useState([]);
   const [currentAdmin, setCurrentAdmin] = useState(null);
   const [pendingStudents, setPendingStudents] = useState([]);
   const [showSessionModal, setShowSessionModal] = useState(false);
@@ -12,18 +13,19 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Read admin data from localStorage
     const storedAdmin = localStorage.getItem("adminData");
     if (storedAdmin) {
       const parsed = JSON.parse(storedAdmin);
       setCurrentAdmin(parsed);
 
-      // Fetch pending students
+      axios.get('/api/approved-students', {
+        params: { department: parsed.department, college: parsed.college }
+      })
+        .then(res => setApprovedStudents(res.data))
+        .catch(err => console.error(err));
+
       axios.get('/api/pending-students', {
-        params: {
-          department: parsed.department,
-          college: parsed.college
-        }
+        params: { department: parsed.department, college: parsed.college }
       })
         .then(res => setPendingStudents(res.data))
         .catch(err => console.error(err))
@@ -118,6 +120,25 @@ const AdminDashboard = () => {
                   <li>📥 Download PDF reports</li>
                 </ul>
               </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row className="mt-4">
+          <Col md={12}>
+            <Card>
+              <Card.Header><strong>✅ Approved Students</strong></Card.Header>
+              <ListGroup variant="flush">
+                {approvedStudents.length === 0 ? (
+                  <ListGroup.Item>No students approved yet.</ListGroup.Item>
+                ) : (
+                  approvedStudents.map((student, index) => (
+                    <ListGroup.Item key={index}>
+                      <strong>{student.name}</strong> ({student.email}) - Dept: {student.department}
+                    </ListGroup.Item>
+                  ))
+                )}
+              </ListGroup>
             </Card>
           </Col>
         </Row>
