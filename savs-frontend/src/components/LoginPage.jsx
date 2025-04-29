@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // import this
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './LoginPage.css';
 
 const LoginPage = () => {
-  const navigate = useNavigate(); // hook to navigate
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'student'
+    role: 'student' // default role
   });
 
   const handleChange = (e) => {
@@ -24,25 +25,30 @@ const LoginPage = () => {
       const res = await axios.post("http://localhost:5000/api/auth/login", formData);
       alert(res.data.message);
   
-      const user = res.data.user; // Add this line
-  
-      // Redirect based on role
+      const user = res.data.user;
       localStorage.setItem("userData", JSON.stringify(user));
 
       if (user.role === 'superadmin') {
         navigate('/super-admin-panel');
       } else if (user.role === 'admin') {
-        localStorage.setItem("adminData", JSON.stringify(user)); // store admin info
+        localStorage.setItem("adminData", JSON.stringify(user));
         navigate('/admin/dashboard');
       } else {
         navigate('/student/dashboard');
       }
-  
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
     }
   };
-  
+
+  const handleSignupRedirect = () => {
+    // Redirect based on selected role
+    if (formData.role === 'admin') {
+      navigate('/signup/admin');
+    } else {
+      navigate('/signup/student');
+    }
+  };
 
   return (
     <div className="signup-background">
@@ -54,21 +60,52 @@ const LoginPage = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label>Email</label>
-            <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} required />
+            <input
+              type="email"
+              name="email"
+              className="form-control"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="mb-3">
             <label>Password</label>
-            <input type="password" name="password" className="form-control" value={formData.password} onChange={handleChange} required />
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="mb-3">
             <label>Login As</label>
-            <select className="form-control" name="role" value={formData.role} onChange={handleChange}>
+            <select
+              className="form-control"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+            >
               <option value="student">Student</option>
               <option value="admin">Admin</option>
             </select>
           </div>
           <button type="submit" className="btn btn-primary w-100">Login</button>
         </form>
+
+        <div className="text-center mt-3">
+          <p>
+            New User?{" "}
+            <button
+              className="btn btn-link p-0"
+              onClick={handleSignupRedirect}
+            >
+              Sign up here
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

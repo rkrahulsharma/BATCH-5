@@ -1,3 +1,5 @@
+// Inside your C:\Users\Welcome\OneDrive\Desktop\SAVS\savs-backend\index.js
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -11,15 +13,20 @@ const authRoute = require('./routes/auth');
 const getPendingAdmins = require('./routes/getPendingAdmins');
 const approveAdmin = require('./routes/approveAdmin');
 const superAdminRoutes = require('./routes/superAdminRoutes');
-// const sessionRoutes = require('./routes/sessionRoutes'); ❌
 const pdfRoutes = require('./routes/pdfRoutes');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middleware to handle CORS
+app.use(cors()); // Allow all origins
+// OR, if you want to specify allowed origin (in your case frontend URL):
+// app.use(cors({ origin: 'http://localhost:3000' }));
+
+// Middleware to handle JSON body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Static directory for file uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Route Mounting
@@ -31,7 +38,6 @@ app.use('/api/auth', authRoute);
 app.use('/api/super-admin/pending-admins', getPendingAdmins);
 app.use('/api/super-admin/approve-admin', approveAdmin);
 app.use('/api/super-admin', superAdminRoutes);
-// app.use('/api/sessions', sessionRoutes); ❌ COMMENT THIS
 app.use('/api/pdf', pdfRoutes);
 
 // Start server

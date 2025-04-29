@@ -8,24 +8,47 @@ const AdminSignup = () => {
     email: '',
     password: '',
     department: '',
-    college: ''
+    college: '',
+    profilePhoto: null, // New state for profile photo
   });
 
+  // Handle input change
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    if (e.target.name === 'profilePhoto') {
+      // Handle file upload
+      setFormData((prev) => ({
+        ...prev,
+        profilePhoto: e.target.files[0], // Store file in state
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [e.target.name]: e.target.value,
+      }));
+    }
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, password, department, college } = formData;
+    const { name, email, password, department, college, profilePhoto } = formData;
+
+    // Prepare form data for file upload
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', name);
+    formDataToSend.append('email', email);
+    formDataToSend.append('password', password);
+    formDataToSend.append('department', department);
+    formDataToSend.append('college', college);
+    formDataToSend.append('profilePhoto', profilePhoto); // Attach profile photo
+
     try {
-      const response = await axios.post("http://localhost:5000/api/signup/admin", {
-        name, email, password, department, college
+      const response = await axios.post("http://localhost:5000/api/signup/admin", formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      alert(response.data.message);
+      alert(response.data.message); // Success message
     } catch (error) {
       console.error(error.response?.data || error.message);
       alert("An error occurred during registration");
@@ -59,6 +82,10 @@ const AdminSignup = () => {
           <div className="mb-3">
             <label>College</label>
             <input type="text" className="form-control" name="college" value={formData.college} onChange={handleChange} required />
+          </div>
+          <div className="mb-3">
+            <label>Profile Photo</label>
+            <input type="file" className="form-control" name="profilePhoto" onChange={handleChange} required />
           </div>
           <button type="submit" className="btn btn-primary w-100">Sign Up</button>
         </form>
