@@ -42,10 +42,10 @@ const LoginPage = () => {
   };
 
   const handleSignupRedirect = () => {
-    // Redirect based on selected role
+    // Only redirect for student and admin
     if (formData.role === 'admin') {
       navigate('/signup/admin');
-    } else {
+    } else if (formData.role === 'student') {
       navigate('/signup/student');
     }
   };
@@ -90,22 +90,31 @@ const LoginPage = () => {
             >
               <option value="student">Student</option>
               <option value="admin">Admin</option>
+              <option value="superadmin">Super Admin</option>
             </select>
           </div>
           <button type="submit" className="btn btn-primary w-100">Login</button>
         </form>
 
-        <div className="text-center mt-3">
-          <p>
-            New User?{" "}
-            <button
-              className="btn btn-link p-0"
-              onClick={handleSignupRedirect}
-            >
-              Sign up here
-            </button>
-          </p>
-        </div>
+        {formData.role !== 'superadmin' && (
+          <div className="text-center mt-3">
+            <p>
+              New User?{" "}
+              <button
+                className="btn btn-link p-0"
+                onClick={handleSignupRedirect}
+              >
+                Sign up here
+              </button>
+            </p>
+          </div>
+        )}
+
+        {formData.role === 'superadmin' && (
+          <div className="text-center mt-3 text-muted" style={{ fontSize: '0.9rem' }}>
+            <em>Super Admin signup is not available. Please contact system administrator.</em>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,51 +9,48 @@ const AdminSignup = () => {
     password: '',
     department: '',
     college: '',
-    profilePhoto: null, // New state for profile photo
+    profilePhoto: null,
   });
 
-  // Handle input change
   const handleChange = (e) => {
-    if (e.target.name === 'profilePhoto') {
-      // Handle file upload
-      setFormData((prev) => ({
-        ...prev,
-        profilePhoto: e.target.files[0], // Store file in state
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [e.target.name]: e.target.value,
-      }));
-    }
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, password, department, college, profilePhoto } = formData;
-
-    // Prepare form data for file upload
+  
     const formDataToSend = new FormData();
-    formDataToSend.append('name', name);
-    formDataToSend.append('email', email);
-    formDataToSend.append('password', password);
-    formDataToSend.append('department', department);
-    formDataToSend.append('college', college);
-    formDataToSend.append('profilePhoto', profilePhoto); // Attach profile photo
-
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('password', formData.password);
+    formDataToSend.append('department', formData.department);
+    formDataToSend.append('college', formData.college);
+  
+    if (formData.profilePhoto) {
+      formDataToSend.append('profilePhoto', formData.profilePhoto);
+    }
+  
     try {
       const response = await axios.post("http://localhost:5000/api/signup/admin", formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert(response.data.message); // Success message
+      alert(response.data.message);
     } catch (error) {
-      console.error(error.response?.data || error.message);
-      alert("An error occurred during registration");
+      console.error("Error submitting form:", error);
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("An error occurred during registration");
+      }
     }
   };
+  
 
   return (
     <div className="signup-background">

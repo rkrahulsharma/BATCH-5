@@ -11,9 +11,10 @@ const verifyAdmin = require('./routes/verifyAdmin');
 const verifyStudent = require('./routes/verifyStudent');
 const authRoute = require('./routes/auth');
 const getPendingAdmins = require('./routes/getPendingAdmins');
-const approveAdmin = require('./routes/approveAdmin');
+//const approveAdmin = require('./routes/approveAdmin');
 const superAdminRoutes = require('./routes/superAdminRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
+//const approvalRoute = require('./routes/approval');
 
 const app = express();
 
@@ -36,9 +37,10 @@ app.use('/api/verify-admin', verifyAdmin);
 app.use('/api/verify-student', verifyStudent);
 app.use('/api/auth', authRoute);
 app.use('/api/super-admin/pending-admins', getPendingAdmins);
-app.use('/api/super-admin/approve-admin', approveAdmin);
+//app.use('/api/super-admin/approve-admin', approveAdmin);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/pdf', pdfRoutes);
+//app.use('/api/approve', approvalRoute);
 
 // Start server
 const PORT = 5000;

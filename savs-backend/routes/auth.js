@@ -5,7 +5,9 @@ const db = require('../db');
 router.post("/login", (req, res) => {
   const { email, password, role } = req.body;
 
-  const table = role === 'admin' ? 'admins' : 'students';
+  // Determine which table to query
+  const table = role === 'student' ? 'students' : 'admins';
+
   const sql = `SELECT * FROM ${table} WHERE email = ? AND password = ?`;
 
   db.query(sql, [email, password], (err, results) => {
@@ -18,13 +20,25 @@ router.post("/login", (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    if (role === 'admin' && !results[0].is_approved) {
-      return res.status(403).json({ message: "Admin not approved yet" });
+    const user = results[0];
+
+    // Role mismatch check (for admin/superadmin)
+    if ((role === 'admin' || role === 'superadmin') && user.role !== role) {
+      return res.status(403).json({ message: "Role mismatch. Please select the correct role." });
+    }
+
+    // Approval checks
+    if ((role === 'admin' || role === 'superadmin') && !user.is_approved) {
+      return res.status(403).json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} not approved yet.` });
+    }
+
+    if (role === 'student' && !user.is_approved) {
+      return res.status(403).json({ message: "Student not approved yet." });
     }
 
     return res.status(200).json({
       message: `${role.charAt(0).toUpperCase() + role.slice(1)} login successful`,
-      user: results[0]
+      user
     });
   });
 });

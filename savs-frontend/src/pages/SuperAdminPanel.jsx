@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Table, Button, Toast, Modal, Badge, Container, Row, Col, Tabs, Tab } from 'react-bootstrap';
+import { Table, Button, Toast, Modal, Badge, Container, Row, Col, Tabs, Tab, Card } from 'react-bootstrap';
 import { motion } from 'framer-motion';
+import './SuperAdminPanel.css';
 
 const SuperAdminPanel = () => {
   const [pendingAdmins, setPendingAdmins] = useState([]);
@@ -30,7 +31,6 @@ const SuperAdminPanel = () => {
         axios.get('/api/super-admin/students'),
         axios.get('/api/super-admin/sessions'),
       ]);
-
       const admins = adminRes.data;
       const students = studentRes.data;
 
@@ -57,137 +57,166 @@ const SuperAdminPanel = () => {
 
   const confirmAction = async () => {
     try {
+      // Construct API route like: /api/super-admin/approve-admin or reject-student
       const url = `/api/super-admin/${modalAction}-${selectedRole}`;
       await axios.post(url, { id: selectedUser.id });
       handleToast(`${selectedRole} ${modalAction}d successfully!`);
       fetchData();
-    } catch {
+    } catch (err) {
       handleToast('Something went wrong!');
     }
     setShowModal(false);
   };
 
   return (
-    <Container fluid className="p-4 bg-light min-vh-100">
-      <h2 className="text-primary mb-4">Super Admin Dashboard</h2>
+    <div className="dashboard-bg text-white min-vh-100 p-4">
+      <Container fluid>
+        <motion.h2 className="mb-4 text-shadow" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          Super Admin Dashboard
+        </motion.h2>
 
-      <Toast show={showToast} bg="info" onClose={() => setShowToast(false)} className="position-fixed top-0 end-0 m-3">
-        <Toast.Body>{toastMsg}</Toast.Body>
-      </Toast>
+        <Toast show={showToast} bg="info" onClose={() => setShowToast(false)} className="position-fixed top-0 end-0 m-3 zindex-toast">
+          <Toast.Body>{toastMsg}</Toast.Body>
+        </Toast>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm {modalAction}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to {modalAction} {selectedRole} <strong>{selectedUser?.name}</strong>?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-          <Button variant={modalAction === 'approve' ? 'success' : 'danger'} onClick={confirmAction}>
-            Yes, {modalAction}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm {modalAction}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to {modalAction} {selectedRole} <strong>{selectedUser?.name}</strong>?
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button variant={modalAction === 'approve' ? 'success' : 'danger'} onClick={confirmAction}>
+              Yes, {modalAction}
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
-      <Tabs defaultActiveKey="admins" className="mb-3">
-        <Tab eventKey="admins" title="Admins">
-          <Row className="mb-3">
-            <Col><Badge bg="warning">Pending: {pendingAdmins.length}</Badge></Col>
-            <Col><Badge bg="success">Approved: {approvedAdmins.length}</Badge></Col>
-          </Row>
+        <Tabs defaultActiveKey="admins" className="mb-4" fill>
+          {/* Admin Tab */}
+          <Tab eventKey="admins" title="Admins">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Row>
+                <Col md={6}>
+                  <Card bg="dark" text="light" className="mb-3">
+                    <Card.Body><Badge bg="warning">Pending: {pendingAdmins.length}</Badge></Card.Body>
+                  </Card>
+                </Col>
+                <Col md={6}>
+                  <Card bg="dark" text="light" className="mb-3">
+                    <Card.Body><Badge bg="success">Approved: {approvedAdmins.length}</Badge></Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+              <h5 className="text-light">Pending Admins</h5>
+              <Table striped bordered hover variant="dark" responsive>
+                <thead><tr><th>Name</th><th>Email</th><th>Dept</th><th>Action</th></tr></thead>
+                <tbody>
+                  {pendingAdmins.map(admin => (
+                    <motion.tr key={admin.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <td>{admin.name}</td>
+                      <td>{admin.email}</td>
+                      <td>{admin.department}</td>
+                      <td>
+                        <Button size="sm" variant="success" className="me-2" onClick={() => openModal(admin, 'admin', 'approve')}>Approve</Button>
+                        <Button size="sm" variant="danger" onClick={() => openModal(admin, 'admin', 'reject')}>Reject</Button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </Table>
 
-          <h5>Pending Admins</h5>
-          <Table striped bordered hover responsive className="mb-4">
-            <thead><tr><th>Name</th><th>Email</th><th>Dept</th><th>Action</th></tr></thead>
-            <tbody>
-              {pendingAdmins.map(admin => (
-                <motion.tr key={admin.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <td>{admin.name}</td>
-                  <td>{admin.email}</td>
-                  <td>{admin.department}</td>
-                  <td>
-                    <Button size="sm" variant="success" className="me-2" onClick={() => openModal(admin, 'admin', 'approve')}>Approve</Button>
-                    <Button size="sm" variant="danger" onClick={() => openModal(admin, 'admin', 'reject')}>Reject</Button>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </Table>
+              <h5 className="text-light">Approved Admins</h5>
+              <Table striped bordered hover variant="dark" responsive>
+                <thead><tr><th>Name</th><th>Email</th><th>Dept</th><th>College</th></tr></thead>
+                <tbody>
+                  {approvedAdmins.map(admin => (
+                    <motion.tr key={admin.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <td>{admin.name}</td>
+                      <td>{admin.email}</td>
+                      <td>{admin.department}</td>
+                      <td>{admin.college}</td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </Table>
+            </motion.div>
+          </Tab>
 
-          <h5>Approved Admins</h5>
-          <Table striped bordered hover responsive>
-            <thead><tr><th>Name</th><th>Email</th><th>Dept</th><th>College</th></tr></thead>
-            <tbody>
-              {approvedAdmins.map(admin => (
-                <motion.tr key={admin.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <td>{admin.name}</td>
-                  <td>{admin.email}</td>
-                  <td>{admin.department}</td>
-                  <td>{admin.college}</td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </Table>
-        </Tab>
+          {/* Students Tab */}
+          <Tab eventKey="students" title="Students">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Row>
+                <Col md={6}>
+                  <Card bg="dark" text="light" className="mb-3">
+                    <Card.Body><Badge bg="warning">Pending: {pendingStudents.length}</Badge></Card.Body>
+                  </Card>
+                </Col>
+                <Col md={6}>
+                  <Card bg="dark" text="light" className="mb-3">
+                    <Card.Body><Badge bg="success">Approved: {approvedStudents.length}</Badge></Card.Body>
+                  </Card>
+                </Col>
+              </Row>
 
-        <Tab eventKey="students" title="Students">
-          <Row className="mb-3">
-            <Col><Badge bg="warning">Pending: {pendingStudents.length}</Badge></Col>
-            <Col><Badge bg="success">Approved: {approvedStudents.length}</Badge></Col>
-          </Row>
+              <h5 className="text-light">Pending Students</h5>
+              <Table striped bordered hover variant="dark" responsive>
+                <thead><tr><th>Name</th><th>Email</th><th>Guardian</th><th>Action</th></tr></thead>
+                <tbody>
+                  {pendingStudents.map(student => (
+                    <motion.tr key={student.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <td>{student.name}</td>
+                      <td>{student.email}</td>
+                      <td>{student.guardian_name}</td>
+                      <td>
+                        <Button size="sm" variant="success" className="me-2" onClick={() => openModal(student, 'student', 'approve')}>Approve</Button>
+                        <Button size="sm" variant="danger" onClick={() => openModal(student, 'student', 'reject')}>Reject</Button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </Table>
 
-          <h5>Pending Students</h5>
-          <Table striped bordered hover responsive className="mb-4">
-            <thead><tr><th>Name</th><th>Email</th><th>Guardian</th><th>Action</th></tr></thead>
-            <tbody>
-              {pendingStudents.map(student => (
-                <motion.tr key={student.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <td>{student.name}</td>
-                  <td>{student.email}</td>
-                  <td>{student.guardian_name}</td>
-                  <td>
-                    <Button size="sm" variant="success" className="me-2" onClick={() => openModal(student, 'student', 'approve')}>Approve</Button>
-                    <Button size="sm" variant="danger" onClick={() => openModal(student, 'student', 'reject')}>Reject</Button>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </Table>
+              <h5 className="text-light">Approved Students</h5>
+              <Table striped bordered hover variant="dark" responsive>
+                <thead><tr><th>Name</th><th>Email</th><th>Guardian</th></tr></thead>
+                <tbody>
+                  {approvedStudents.map(student => (
+                    <motion.tr key={student.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <td>{student.name}</td>
+                      <td>{student.email}</td>
+                      <td>{student.guardian_name}</td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </Table>
+            </motion.div>
+          </Tab>
 
-          <h5>Approved Students</h5>
-          <Table striped bordered hover responsive>
-            <thead><tr><th>Name</th><th>Email</th><th>Guardian</th></tr></thead>
-            <tbody>
-              {approvedStudents.map(student => (
-                <motion.tr key={student.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <td>{student.name}</td>
-                  <td>{student.email}</td>
-                  <td>{student.guardian_name}</td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </Table>
-        </Tab>
-
-        <Tab eventKey="reports" title="Session Reports">
-          <h5>Hosted Sessions</h5>
-          <Table striped bordered hover responsive>
-            <thead><tr><th>Session Title</th><th>Host</th><th>Date</th><th>Participants</th></tr></thead>
-            <tbody>
-              {sessions.map(session => (
-                <motion.tr key={session.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <td>{session.title}</td>
-                  <td>{session.host}</td>
-                  <td>{session.date}</td>
-                  <td>{session.participant_count}</td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </Table>
-        </Tab>
-      </Tabs>
-    </Container>
+          {/* Session Reports */}
+          <Tab eventKey="reports" title="Session Reports">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <h5 className="text-light mt-3">Hosted Sessions</h5>
+              <Table striped bordered hover variant="dark" responsive>
+                <thead><tr><th>Session Title</th><th>Host</th><th>Date</th><th>Participants</th></tr></thead>
+                <tbody>
+                  {sessions.map(session => (
+                    <motion.tr key={session.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <td>{session.title}</td>
+                      <td>{session.host}</td>
+                      <td>{session.date}</td>
+                      <td>{session.participant_count}</td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </Table>
+            </motion.div>
+          </Tab>
+        </Tabs>
+      </Container>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // your DB connection
+const db = require('../db');
 
 // GET all admins
 router.get('/admins', async (req, res) => {
@@ -12,7 +12,7 @@ router.get('/admins', async (req, res) => {
   }
 });
 
-// POST /approve
+// Approve Admin
 router.post('/approve', async (req, res) => {
   const { id } = req.body;
   try {
@@ -23,7 +23,7 @@ router.post('/approve', async (req, res) => {
   }
 });
 
-// POST /reject
+// Reject Admin
 router.post('/reject', async (req, res) => {
   const { id } = req.body;
   try {
@@ -33,6 +33,7 @@ router.post('/reject', async (req, res) => {
     res.status(500).json({ error: 'Rejection failed' });
   }
 });
+
 // GET all students
 router.get('/students', async (req, res) => {
   try {
@@ -42,6 +43,30 @@ router.get('/students', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch students' });
   }
 });
+
+// Approve Student
+router.post('/approve-student', async (req, res) => {
+  const { id } = req.body;
+  try {
+    await db.query('UPDATE students SET is_approved = 1 WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Student approved' });
+  } catch (err) {
+    res.status(500).json({ error: 'Student approval failed' });
+  }
+});
+
+// Reject Student
+router.post('/reject-student', async (req, res) => {
+  const { id } = req.body;
+  try {
+    await db.query('DELETE FROM students WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Student rejected and deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Student rejection failed' });
+  }
+});
+
+// Add Student (manually by super admin if needed)
 router.post('/add-student', async (req, res) => {
   const { name, email, department, guardian_email } = req.body;
   try {
@@ -54,6 +79,7 @@ router.post('/add-student', async (req, res) => {
     res.status(500).json({ error: 'Failed to add student' });
   }
 });
+
 // GET all session reports
 router.get('/reports', async (req, res) => {
   try {
@@ -64,6 +90,8 @@ router.get('/reports', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch reports' });
   }
 });
+
+// Host a new session
 router.post('/host-session', async (req, res) => {
   const { title, start_time, end_time } = req.body;
   try {
@@ -73,7 +101,14 @@ router.post('/host-session', async (req, res) => {
     res.status(500).json({ error: 'Failed to host session' });
   }
 });
-
-
+// GET all sessions
+router.get('/sessions', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM sessions');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+});
 
 module.exports = router;

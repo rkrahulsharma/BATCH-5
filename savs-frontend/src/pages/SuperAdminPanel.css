@@ -1,0 +1,19 @@
+.dashboard-bg {
+    background-image: url('../assets/bg.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 100vh;
+    padding: 2rem;
+    color: #fff;
+}
+
+  
+  .text-shadow {
+    text-shadow: 1px 1px 3px #000;
+  }
+  
+  .zindex-toast {
+    z-index: 1056;
+  }
+  
