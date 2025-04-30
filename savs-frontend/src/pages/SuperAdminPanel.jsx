@@ -10,6 +10,8 @@ const SuperAdminPanel = () => {
   const [pendingStudents, setPendingStudents] = useState([]);
   const [approvedStudents, setApprovedStudents] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [pendingSessions, setPendingSessions] = useState([]);
+  const [approvedSessions, setApprovedSessions] = useState([]);
 
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -26,20 +28,28 @@ const SuperAdminPanel = () => {
 
   const fetchData = async () => {
     try {
-      const [adminRes, studentRes, sessionRes] = await Promise.all([
+      const [pendingAdminRes, pendingStudentRes, sessionRes, pendingSessionRes, approvedSessionRes] = await Promise.all([
+        axios.get('/api/super-admin/pending-admins'),
+        axios.get('/api/super-admin/pending-students'),
+        axios.get('/api/super-admin/sessions'),
+        axios.get('/api/super-admin/pending-sessions'), // New API for pending sessions
+        axios.get('/api/super-admin/approved-sessions'), // New API for approved sessions
+      ]);
+  
+      setPendingAdmins(pendingAdminRes.data);
+      setPendingStudents(pendingStudentRes.data);
+      setSessions(sessionRes.data);
+      setPendingSessions(pendingSessionRes.data);
+      setApprovedSessions(approvedSessionRes.data);
+  
+      // Fetch approved admins and students separately
+      const [approvedAdminRes, approvedStudentRes] = await Promise.all([
         axios.get('/api/super-admin/admins'),
         axios.get('/api/super-admin/students'),
-        axios.get('/api/super-admin/sessions'),
       ]);
-      const admins = adminRes.data;
-      const students = studentRes.data;
-
-      setPendingAdmins(admins.filter(a => a.is_approved === 0));
-
-      setApprovedAdmins(admins.filter(a => a.is_approved === 1));
-      setPendingStudents(students.filter(s => s.is_approved === 0));
-      setApprovedStudents(students.filter(s => s.is_approved === 1));
-      setSessions(sessionRes.data);
+  
+      setApprovedAdmins(approvedAdminRes.data.filter(a => a.is_approved === 1));
+      setApprovedStudents(approvedStudentRes.data.filter(s => s.is_approved === 1));
     } catch (err) {
       console.error(err);
     }
@@ -58,9 +68,8 @@ const SuperAdminPanel = () => {
 
   const confirmAction = async () => {
     try {
-      // Construct API route like: /api/super-admin/approve-admin or reject-student
       const url = `/api/super-admin/${modalAction}-${selectedRole}`;
-      await axios.post(url, { id: selectedUser.id });
+      await axios.post(url, { id: selectedUser.id, email: selectedUser.email, name: selectedUser.name });
       handleToast(`${selectedRole} ${modalAction}d successfully!`);
       fetchData();
     } catch (err) {
@@ -199,16 +208,63 @@ const SuperAdminPanel = () => {
           {/* Session Reports */}
           <Tab eventKey="reports" title="Session Reports">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <h5 className="text-light mt-3">Hosted Sessions</h5>
+              <h5 className="text-light mt-3">Pending Sessions</h5>
               <Table striped bordered hover variant="dark" responsive>
-                <thead><tr><th>Session Title</th><th>Host</th><th>Date</th><th>Participants</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Session Title</th>
+                    <th>Host</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {sessions.map(session => (
+                  {pendingSessions.map(session => (
                     <motion.tr key={session.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                       <td>{session.title}</td>
                       <td>{session.host}</td>
-                      <td>{session.date}</td>
-                      <td>{session.participant_count}</td>
+                      <td>{session.start_time}</td>
+                      <td>{session.end_time}</td>
+                      <td>
+                        <Button
+                          size="sm"
+                          variant="success"
+                          className="me-2"
+                          onClick={() => openModal(session, 'session', 'approve')}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => openModal(session, 'session', 'reject')}
+                        >
+                          Reject
+                        </Button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </Table>
+
+              <h5 className="text-light mt-3">Approved Sessions</h5>
+              <Table striped bordered hover variant="dark" responsive>
+                <thead>
+                  <tr>
+                    <th>Session Title</th>
+                    <th>Host</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {approvedSessions.map(session => (
+                    <motion.tr key={session.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <td>{session.title}</td>
+                      <td>{session.host}</td>
+                      <td>{session.start_time}</td>
+                      <td>{session.end_time}</td>
                     </motion.tr>
                   ))}
                 </tbody>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Container, Row, Col, Button, Card, ListGroup, Navbar, Nav, Modal, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import './AdminDashboard.css'; // Add the path to your CSS file here
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const [approvedStudents, setApprovedStudents] = useState([]);
@@ -45,10 +45,15 @@ const AdminDashboard = () => {
       .catch(() => alert("❌ Approval failed"));
   };
 
-  const startSession = () => {
-    console.log("Session started:", session);
+  const handleStartSession = () => {
+    if (!session.name || !session.start || !session.end) {
+      alert("⚠️ Please fill in session name, start and end time.");
+      return;
+    }
+
     alert(`🎥 Session "${session.name}" scheduled from ${session.start} to ${session.end}`);
     setShowSessionModal(false);
+    navigate("/host/session", { state: { session } });
   };
 
   const logout = () => {
@@ -165,15 +170,25 @@ const AdminDashboard = () => {
           <Form>
             <Form.Group>
               <Form.Label>Session Name</Form.Label>
-              <Form.Control type="text" placeholder="e.g., DBMS Lecture" onChange={(e) => setSession({ ...session, name: e.target.value })} />
+              <Form.Control
+                type="text"
+                placeholder="e.g., DBMS Lecture"
+                onChange={(e) => setSession({ ...session, name: e.target.value })}
+              />
             </Form.Group>
             <Form.Group>
               <Form.Label>Start Time</Form.Label>
-              <Form.Control type="datetime-local" onChange={(e) => setSession({ ...session, start: e.target.value })} />
+              <Form.Control
+                type="datetime-local"
+                onChange={(e) => setSession({ ...session, start: e.target.value })}
+              />
             </Form.Group>
             <Form.Group>
               <Form.Label>End Time</Form.Label>
-              <Form.Control type="datetime-local" onChange={(e) => setSession({ ...session, end: e.target.value })} />
+              <Form.Control
+                type="datetime-local"
+                onChange={(e) => setSession({ ...session, end: e.target.value })}
+              />
             </Form.Group>
 
             <Form.Label>Camera Access Intervals</Form.Label>
@@ -191,7 +206,7 @@ const AdminDashboard = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowSessionModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={startSession}>Start Session</Button>
+          <Button variant="primary" onClick={handleStartSession}>Start Session</Button>
         </Modal.Footer>
       </Modal>
     </>

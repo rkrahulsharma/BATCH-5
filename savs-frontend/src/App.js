@@ -31,8 +31,8 @@ function App() {
 
 <Route path="/login/admin" element={<AdminLogin />} />
 <Route path="/login/student" element={<StudentLogin />} />
-<Route path="/host-session" element={<HostSessionPage />} />
 
+<Route path="/host/session" element={<HostSessionPage />} />
       </Routes>
     </Router>
   );
