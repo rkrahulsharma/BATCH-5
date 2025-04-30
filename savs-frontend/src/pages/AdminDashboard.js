@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Container, Row, Col, Button, Card, ListGroup, Navbar, Nav, Modal, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import './AdminDashboard.css'; // Add the path to your CSS file here
 
 const AdminDashboard = () => {
   const [approvedStudents, setApprovedStudents] = useState([]);
   const [currentAdmin, setCurrentAdmin] = useState(null);
   const [pendingStudents, setPendingStudents] = useState([]);
   const [showSessionModal, setShowSessionModal] = useState(false);
-  const [session, setSession] = useState({ name: '', start: '', end: '' });
+  const [session, setSession] = useState({ name: '', start: '', end: '', intervals: [] });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -56,6 +57,16 @@ const AdminDashboard = () => {
     navigate("/admin-login");
   };
 
+  const handleSessionIntervals = (e, index) => {
+    const newIntervals = [...session.intervals];
+    newIntervals[index] = e.target.value;
+    setSession({ ...session, intervals: newIntervals });
+  };
+
+  const addSessionInterval = () => {
+    setSession({ ...session, intervals: [...session.intervals, ''] });
+  };
+
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -85,64 +96,66 @@ const AdminDashboard = () => {
         </Container>
       </Navbar>
 
-      <Container className="mt-4">
-        <Row>
-          <Col md={6}>
-            <Card>
-              <Card.Header><strong>Pending Student Approvals</strong></Card.Header>
-              <ListGroup variant="flush">
-                {pendingStudents.length === 0 ? (
-                  <ListGroup.Item>No pending students ✅</ListGroup.Item>
-                ) : (
-                  pendingStudents.map((student) => (
-                    <ListGroup.Item key={student.email} className="d-flex justify-content-between">
-                      <div>
-                        <strong>{student.name}</strong> ({student.email})<br />
-                        Dept: {student.department}, College: {student.college}
-                      </div>
-                      <Button variant="success" onClick={() => approveStudent(student.email)}>Approve</Button>
-                    </ListGroup.Item>
-                  ))
-                )}
-              </ListGroup>
-            </Card>
-          </Col>
+      <div className="admin-dashboard-bg">
+        <Container className="mt-4">
+          <Row>
+            <Col md={6}>
+              <Card className="dashboard-card">
+                <Card.Header><strong>Pending Student Approvals</strong></Card.Header>
+                <ListGroup variant="flush">
+                  {pendingStudents.length === 0 ? (
+                    <ListGroup.Item>No pending students ✅</ListGroup.Item>
+                  ) : (
+                    pendingStudents.map((student) => (
+                      <ListGroup.Item key={student.email} className="d-flex justify-content-between">
+                        <div>
+                          <strong>{student.name}</strong> ({student.email})<br />
+                          Dept: {student.department}, College: {student.college}
+                        </div>
+                        <Button variant="success" onClick={() => approveStudent(student.email)}>Approve</Button>
+                      </ListGroup.Item>
+                    ))
+                  )}
+                </ListGroup>
+              </Card>
+            </Col>
 
-          <Col md={6}>
-            <Card>
-              <Card.Header><strong>Upcoming Session Info</strong></Card.Header>
-              <Card.Body>
-                <p>Use "Schedule Session" above to initiate live attendance verification.</p>
-                <p><strong>Future Features:</strong></p>
-                <ul>
-                  <li>📸 Real-time image capturing</li>
-                  <li>📊 Attendance analytics</li>
-                  <li>📥 Download PDF reports</li>
-                </ul>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+            <Col md={6}>
+              <Card className="dashboard-card">
+                <Card.Header><strong>Upcoming Session Info</strong></Card.Header>
+                <Card.Body>
+                  <p>Use "Schedule Session" above to initiate live attendance verification.</p>
+                  <p><strong>Future Features:</strong></p>
+                  <ul>
+                    <li>📸 Real-time image capturing</li>
+                    <li>📊 Attendance analytics</li>
+                    <li>📥 Download PDF reports</li>
+                  </ul>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
 
-        <Row className="mt-4">
-          <Col md={12}>
-            <Card>
-              <Card.Header><strong>✅ Approved Students</strong></Card.Header>
-              <ListGroup variant="flush">
-                {approvedStudents.length === 0 ? (
-                  <ListGroup.Item>No students approved yet.</ListGroup.Item>
-                ) : (
-                  approvedStudents.map((student, index) => (
-                    <ListGroup.Item key={index}>
-                      <strong>{student.name}</strong> ({student.email}) - Dept: {student.department}
-                    </ListGroup.Item>
-                  ))
-                )}
-              </ListGroup>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+          <Row className="mt-4">
+            <Col md={12}>
+              <Card className="dashboard-card">
+                <Card.Header><strong>✅ Approved Students</strong></Card.Header>
+                <ListGroup variant="flush">
+                  {approvedStudents.length === 0 ? (
+                    <ListGroup.Item>No students approved yet.</ListGroup.Item>
+                  ) : (
+                    approvedStudents.map((student, index) => (
+                      <ListGroup.Item key={index}>
+                        <strong>{student.name}</strong> ({student.email}) - Dept: {student.department}
+                      </ListGroup.Item>
+                    ))
+                  )}
+                </ListGroup>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </div>
 
       <Modal show={showSessionModal} onHide={() => setShowSessionModal(false)}>
         <Modal.Header closeButton>
@@ -162,6 +175,18 @@ const AdminDashboard = () => {
               <Form.Label>End Time</Form.Label>
               <Form.Control type="datetime-local" onChange={(e) => setSession({ ...session, end: e.target.value })} />
             </Form.Group>
+
+            <Form.Label>Camera Access Intervals</Form.Label>
+            {session.intervals.map((interval, index) => (
+              <Form.Group key={index}>
+                <Form.Control
+                  type="time"
+                  value={interval}
+                  onChange={(e) => handleSessionIntervals(e, index)}
+                />
+              </Form.Group>
+            ))}
+            <Button variant="link" onClick={addSessionInterval}>+ Add More Intervals</Button>
           </Form>
         </Modal.Body>
         <Modal.Footer>

@@ -35,6 +35,7 @@ const SuperAdminPanel = () => {
       const students = studentRes.data;
 
       setPendingAdmins(admins.filter(a => a.is_approved === 0));
+
       setApprovedAdmins(admins.filter(a => a.is_approved === 1));
       setPendingStudents(students.filter(s => s.is_approved === 0));
       setApprovedStudents(students.filter(s => s.is_approved === 1));

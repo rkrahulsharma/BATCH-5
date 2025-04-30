@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./components/LandingPage";
 import AdminSignup from './components/AdminSignup';
 import StudentSignup from './components/StudentSignup';
-
+import HostSessionPage from "./pages/HostSessionPage";
 import LoginPage from './components/LoginPage.jsx'
 import AdminLogin from './components/AdminLogin';
 import StudentLogin from './components/StudentLogin';
@@ -11,6 +11,7 @@ import SuperAdminPanel from './pages/SuperAdminPanel';
 import StudentDashboard from "./pages/StudentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { SocketProvider } from './context/SocketContext';
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
 
 <Route path="/login/admin" element={<AdminLogin />} />
 <Route path="/login/student" element={<StudentLogin />} />
-
+<Route path="/host-session" element={<HostSessionPage />} />
 
       </Routes>
     </Router>

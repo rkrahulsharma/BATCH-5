@@ -1,38 +1,38 @@
 .admin-dashboard-bg {
-    background: linear-gradient(to bottom right, #e3f2fd, #ffffff);
-    min-height: 100vh;
-    padding: 40px 20px;
-  }
-  
-  .dashboard-header {
-    margin-bottom: 30px;
-  }
-  
-  .dashboard-title {
-    color: #0d6efd;
-    font-size: 28px;
-    font-weight: bold;
-  }
-  
-  .dashboard-subtitle {
-    color: #444;
-    font-size: 16px;
-  }
-  
-  .dashboard-card {
-    border: none;
-    border-radius: 15px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-  }
-  
-  .dashboard-icon {
-    font-size: 32px;
-    color: #0d6efd;
-    margin-bottom: 10px;
-  }
-  
+  background-image: url('../assets/bg.png');
+  background: linear-gradient(to bottom right, #e3f2fd, #ffffff);
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.dashboard-header {
+  margin-bottom: 30px;
+}
+
+.dashboard-title {
+  color: #0d6efd;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.dashboard-subtitle {
+  color: #444;
+  font-size: 16px;
+}
+
+.dashboard-card {
+  border: none;
+  border-radius: 15px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-icon {
+  font-size: 32px;
+  color: #0d6efd;
+  margin-bottom: 10px;
+}
