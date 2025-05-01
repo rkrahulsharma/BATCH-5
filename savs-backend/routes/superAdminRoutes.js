@@ -12,8 +12,18 @@ router.get('/admins', async (req, res) => {
   }
 });
 
+// GET all pending admins
+router.get('/pending-admins', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM admins WHERE is_approved = 0');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch pending admins' });
+  }
+});
+
 // Approve Admin
-router.post('/approve', async (req, res) => {
+router.post('/approve-admin', async (req, res) => {
   const { id } = req.body;
   try {
     await db.query('UPDATE admins SET is_approved = 1 WHERE id = ?', [id]);
@@ -24,7 +34,7 @@ router.post('/approve', async (req, res) => {
 });
 
 // Reject Admin
-router.post('/reject', async (req, res) => {
+router.post('/reject-admin', async (req, res) => {
   const { id } = req.body;
   try {
     await db.query('DELETE FROM admins WHERE id = ?', [id]);
@@ -41,6 +51,16 @@ router.get('/students', async (req, res) => {
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch students' });
+  }
+});
+
+// GET all pending students
+router.get('/pending-students', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM students WHERE is_approved = 0');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch pending students' });
   }
 });
 
@@ -66,7 +86,7 @@ router.post('/reject-student', async (req, res) => {
   }
 });
 
-// Add Student (manually by super admin if needed)
+// Add Student manually
 router.post('/add-student', async (req, res) => {
   const { name, email, department, guardian_email } = req.body;
   try {
@@ -101,6 +121,7 @@ router.post('/host-session', async (req, res) => {
     res.status(500).json({ error: 'Failed to host session' });
   }
 });
+
 // GET all sessions
 router.get('/sessions', async (req, res) => {
   try {
@@ -108,6 +129,26 @@ router.get('/sessions', async (req, res) => {
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+});
+
+// GET all pending sessions
+router.get('/pending-sessions', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM sessions WHERE is_approved = 0');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch pending sessions' });
+  }
+});
+
+// GET all approved sessions
+router.get('/approved-sessions', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM sessions WHERE is_approved = 1');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch approved sessions' });
   }
 });
 
