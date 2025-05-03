@@ -22,12 +22,22 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", formData);
+      // Dynamically determine the endpoint
+      let endpoint = '';
+  
+      if (formData.role === 'superadmin') {
+        endpoint = '/api/superadmin/login';
+      } else {
+        endpoint = '/api/auth/login';
+      }
+  
+      const res = await axios.post(`http://localhost:5000${endpoint}`, formData);
+  
       alert(res.data.message);
   
       const user = res.data.user;
       localStorage.setItem("userData", JSON.stringify(user));
-
+  
       if (user.role === 'superadmin') {
         navigate('/super-admin-panel');
       } else if (user.role === 'admin') {
@@ -37,9 +47,11 @@ const LoginPage = () => {
         navigate('/student/dashboard');
       }
     } catch (err) {
+      console.error(err);  // Add this to see actual issue
       alert(err.response?.data?.message || "Login failed");
     }
   };
+  
 
   const handleSignupRedirect = () => {
     // Only redirect for student and admin

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminSignup.css';
 
 const AdminSignup = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,18 +25,18 @@ const AdminSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const formDataToSend = new FormData();
     formDataToSend.append('name', formData.name);
     formDataToSend.append('email', formData.email);
     formDataToSend.append('password', formData.password);
     formDataToSend.append('department', formData.department);
     formDataToSend.append('college', formData.college);
-  
+
     if (formData.profilePhoto) {
       formDataToSend.append('profilePhoto', formData.profilePhoto);
     }
-  
+
     try {
       const response = await axios.post("http://localhost:5000/api/signup/admin", formDataToSend, {
         headers: {
@@ -41,6 +44,7 @@ const AdminSignup = () => {
         },
       });
       alert(response.data.message);
+      navigate('/login'); // Redirect after successful signup
     } catch (error) {
       console.error("Error submitting form:", error);
       if (error.response && error.response.data && error.response.data.message) {
@@ -50,7 +54,6 @@ const AdminSignup = () => {
       }
     }
   };
-  
 
   return (
     <div className="signup-background">

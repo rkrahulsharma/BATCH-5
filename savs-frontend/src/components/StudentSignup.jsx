@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './StudentSignup.css';
 
 const StudentSignup = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -40,7 +43,8 @@ const StudentSignup = () => {
 
     try {
       const res = await axios.post("http://localhost:5000/api/signup/student", data);
-      alert(res.data.message); // “Signup successful, pending approval”
+      alert(res.data.message); // e.g., “Signup successful, pending approval”
+      navigate('/login'); // Redirect to common login page
     } catch (err) {
       console.error(err);
       alert("Registration failed");

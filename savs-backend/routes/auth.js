@@ -2,45 +2,49 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-router.post("/login", (req, res) => {
+// Unified Login Route
+router.post('/login', async (req, res) => {
   const { email, password, role } = req.body;
 
-  // Determine which table to query
-  const table = role === 'student' ? 'students' : 'admins';
+  if (!email || !password || !role) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
 
-  const sql = `SELECT * FROM ${table} WHERE email = ? AND password = ?`;
+  let table = '';
+  if (role === 'admin') table = 'admins';
+  else if (role === 'student') table = 'students';
+  else if (role === 'superadmin') table = 'superadmins';
+  else return res.status(400).json({ message: 'Invalid role specified' });
 
-  db.query(sql, [email, password], (err, results) => {
-    if (err) {
-      console.error("MySQL error:", err);
-      return res.status(500).json({ message: "Server error" });
+  try {
+    const [users] = await db.query(`SELECT * FROM ${table} WHERE email = ?`, [email]);
+
+    if (!users.length) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    if (results.length === 0) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    const user = users[0];
+
+    // Password match check
+    if (user.password !== password) {
+      return res.status(401).json({ message: 'Incorrect password' });
     }
 
-    const user = results[0];
-
-    // Role mismatch check (for admin/superadmin)
-    if ((role === 'admin' || role === 'superadmin') && user.role !== role) {
-      return res.status(403).json({ message: "Role mismatch. Please select the correct role." });
+    // Approval check for admin and student
+    if ((role === 'admin' || role === 'student') && !user.is_approved) {
+      return res.status(403).json({
+        message:
+          role === 'admin'
+            ? 'Your admin account is pending Super Admin approval.'
+            : 'Your account is pending approval by your department host.',
+      });
     }
 
-    // Approval checks
-    if ((role === 'admin' || role === 'superadmin') && !user.is_approved) {
-      return res.status(403).json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} not approved yet.` });
-    }
-
-    if (role === 'student' && !user.is_approved) {
-      return res.status(403).json({ message: "Student not approved yet." });
-    }
-
-    return res.status(200).json({
-      message: `${role.charAt(0).toUpperCase() + role.slice(1)} login successful`,
-      user
-    });
-  });
+    res.status(200).json({ message: 'Login successful', user });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 });
 
 module.exports = router;

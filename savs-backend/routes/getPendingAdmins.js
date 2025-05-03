@@ -1,12 +1,17 @@
 const express = require('express');
-const router = express.Router();
 const db = require('../db');
 
+const router = express.Router();
+
 router.get('/', (req, res) => {
-  const sql = "SELECT id, name, email, department, college FROM admins WHERE is_approved = 0";
-  db.query(sql, (err, result) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    res.status(200).json(result);
+  const query = "SELECT id, name, email, department, college FROM admins WHERE is_approved = FALSE";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching pending admins:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+    res.status(200).json(results);
   });
 });
 
