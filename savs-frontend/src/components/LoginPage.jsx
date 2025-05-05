@@ -39,15 +39,18 @@ const LoginPage = () => {
       const user = res.data.user;
       
       localStorage.setItem("userData", JSON.stringify(user));
-      console.log("Stored user:", user);
+console.log("Stored user:", user);
 
-      if (user.role === 'superadmin') {
-        navigate('/super-admin-panel');
-      } else if (user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/student/dashboard');
-      }
+if (user.role === 'superadmin') {
+  navigate('/super-admin-panel');
+} else if (user.role === 'admin') {
+  navigate('/admin/dashboard');
+} else if (user.role === 'student') {
+  localStorage.setItem("studentLoggedIn", true);
+  localStorage.setItem("studentName", user.name);
+  localStorage.setItem("studentEmail", user.email);
+  navigate('/student/dashboard');
+}
   
     } catch (err) {
       console.error("Login Error:", err);

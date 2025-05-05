@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const http = require("http");                 // ⬅️ New
-const socketIO = require("socket.io");        // ⬅️ New
+const http = require("http");
+const socketIO = require("socket.io");
+const activeRooms = new Set(); // Keeps track of active rooms
 
 const db = require("./db");
 const superAdminRoutes = require("./routes/superadmin");
@@ -11,7 +12,8 @@ const adminSignup = require("./routes/adminSignup");
 const adminRoutes = require('./routes/admin');
 const loginRouter = require('./routes/login');
 const studentRoutes = require("./routes/student");
-const sessionRoutes = require("./routes/sessions");
+
+const sessionRoutes = require('./routes/sessionRoutes'); // ✅ correct
 const app = express();
 const PORT = 5000;
 
@@ -26,22 +28,34 @@ const io = socketIO(server, {
 
 // WebSocket / WebRTC Signaling
 io.on('connection', (socket) => {
-  console.log("🟢 New socket connected:", socket.id);
+  console.log('New client connected:', socket.id);
 
-  socket.on('join-room', ({ roomId, userId }) => {
+  // Admin joins the room
+  socket.on('admin-join', ({ roomId }) => {
     socket.join(roomId);
-    socket.to(roomId).emit('user-joined', { userId, socketId: socket.id });
+    socket.roomId = roomId;
+    socket.role = 'admin';
+    console.log(`Admin joined room: ${roomId}`);
   });
 
-  socket.on('signal', (data) => {
-    io.to(data.target).emit('signal', {
-      signal: data.signal,
-      caller: data.caller,
-    });
+  // Student joins the room
+  socket.on('join-session', ({ roomId, name }) => {
+    socket.join(roomId);
+    socket.roomId = roomId;
+    socket.role = 'student';
+    console.log(`${name} joined room: ${roomId}`);
+
+    // Notify admin that a new student has joined
+    socket.to(roomId).emit('student-joined', { name, socketId: socket.id });
+  });
+
+  // Handle WebRTC signaling
+  socket.on('signal', ({ target, signal }) => {
+    io.to(target).emit('signal', { signal, sender: socket.id });
   });
 
   socket.on('disconnect', () => {
-    console.log("🔴 Socket disconnected:", socket.id);
+    console.log('User disconnected:', socket.id);
   });
 });
 
@@ -60,7 +74,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/login', loginRouter);
 app.use("/api/students", studentRoutes);
 app.use("/api/superadmin", superAdminRoutes);
-app.use("/api/sessions", sessionRoutes);
+app.use('/api/session', sessionRoutes);
+
 // MySQL connection test
 db.getConnection((err, connection) => {
   if (err) {
