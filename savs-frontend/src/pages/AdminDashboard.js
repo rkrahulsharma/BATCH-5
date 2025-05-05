@@ -1,215 +1,131 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Button, Card, ListGroup, Navbar, Nav, Modal, Form } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Tab, Tabs, Container, Button, Nav } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';  // <-- Import useNavigate
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-  const [approvedStudents, setApprovedStudents] = useState([]);
-  const [currentAdmin, setCurrentAdmin] = useState(null);
-  const [pendingStudents, setPendingStudents] = useState([]);
-  const [showSessionModal, setShowSessionModal] = useState(false);
-  const [session, setSession] = useState({ name: '', start: '', end: '', intervals: [] });
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [pending, setPending] = useState([]);
+  const [sessionActive, setSessionActive] = useState(false);
+  const [admin, setAdmin] = useState({});
+  
+  const navigate = useNavigate();  // <-- Define navigate here
 
   useEffect(() => {
-    const storedAdmin = localStorage.getItem("adminData");
-    if (storedAdmin) {
-      const parsed = JSON.parse(storedAdmin);
-      setCurrentAdmin(parsed);
-
-      axios.get('/api/approved-students', {
-        params: { department: parsed.department, college: parsed.college }
-      })
-        .then(res => setApprovedStudents(res.data))
-        .catch(err => console.error(err));
-
-      axios.get('/api/pending-students', {
-        params: { department: parsed.department, college: parsed.college }
-      })
-        .then(res => setPendingStudents(res.data))
-        .catch(err => console.error(err))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    fetchStudents();
+    fetchPending();
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    setAdmin(userData);
   }, []);
 
-  const approveStudent = (email) => {
-    axios.post('/api/verify-student', { email })
-      .then(() => {
-        alert("✅ Student approved!");
-        setPendingStudents(pendingStudents.filter(student => student.email !== email));
-      })
-      .catch(() => alert("❌ Approval failed"));
+  const fetchStudents = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/admin/students");
+      setStudents(res.data.students);
+    } catch (err) {
+      alert("Failed to fetch students");
+    }
   };
 
-  const handleStartSession = () => {
-    if (!session.name || !session.start || !session.end) {
-      alert("⚠️ Please fill in session name, start and end time.");
-      return;
+  const fetchPending = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/admin/pending-approvals");
+      setPending(res.data.pending || []);
+    } catch (err) {
+      console.error("Error fetching pending approvals", err);
     }
+  };
 
-    alert(`🎥 Session "${session.name}" scheduled from ${session.start} to ${session.end}`);
-    setShowSessionModal(false);
-    navigate("/host/session", { state: { session } });
+  const approveStudent = async (id) => {
+    try {
+      await axios.post(`http://localhost:5000/api/admin/approve/${id}`);
+      alert("Student approved!");
+      fetchPending();
+      fetchStudents();
+    } catch (err) {
+      alert("Approval failed");
+    }
+  };
+
+  const startSession = async () => {
+    try {
+      await axios.post("http://localhost:5000/api/session/start");
+      setSessionActive(true);
+      alert("Session started");
+    } catch (err) {
+      alert("Error starting session");
+    }
+  };
+
+  const endSession = async () => {
+    try {
+      await axios.post("http://localhost:5000/api/session/end");
+      setSessionActive(false);
+      alert("Session ended");
+    } catch (err) {
+      alert("Error ending session");
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem("admin-token");
-    localStorage.removeItem("adminData");
-    navigate("/admin-login");
+    localStorage.removeItem("userData");
+    window.location.href = "/";
   };
-
-  const handleSessionIntervals = (e, index) => {
-    const newIntervals = [...session.intervals];
-    newIntervals[index] = e.target.value;
-    setSession({ ...session, intervals: newIntervals });
-  };
-
-  const addSessionInterval = () => {
-    setSession({ ...session, intervals: [...session.intervals, ''] });
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center mt-5">
-        <h4>Loading admin data...</h4>
-      </div>
-    );
-  }
-
-  if (!currentAdmin) {
-    return (
-      <div className="text-center mt-5">
-        <h4>No admin data found. Please login again.</h4>
-        <Button className="mt-3" onClick={logout}>Go to Login</Button>
-      </div>
-    );
-  }
 
   return (
-    <>
-      <Navbar bg="dark" variant="dark">
-        <Container>
-          <Navbar.Brand>Admin Dashboard - SAVS</Navbar.Brand>
-          <Nav>
-            <Nav.Link onClick={() => setShowSessionModal(true)}>📅 Schedule Session</Nav.Link>
-            <Nav.Link onClick={logout}>🚪 Logout</Nav.Link>
-          </Nav>
-        </Container>
-      </Navbar>
-
-      <div className="admin-dashboard-bg">
-        <Container className="mt-4">
-          <Row>
-            <Col md={6}>
-              <Card className="dashboard-card">
-                <Card.Header><strong>Pending Student Approvals</strong></Card.Header>
-                <ListGroup variant="flush">
-                  {pendingStudents.length === 0 ? (
-                    <ListGroup.Item>No pending students ✅</ListGroup.Item>
-                  ) : (
-                    pendingStudents.map((student) => (
-                      <ListGroup.Item key={student.email} className="d-flex justify-content-between">
-                        <div>
-                          <strong>{student.name}</strong> ({student.email})<br />
-                          Dept: {student.department}, College: {student.college}
-                        </div>
-                        <Button variant="success" onClick={() => approveStudent(student.email)}>Approve</Button>
-                      </ListGroup.Item>
-                    ))
-                  )}
-                </ListGroup>
-              </Card>
-            </Col>
-
-            <Col md={6}>
-              <Card className="dashboard-card">
-                <Card.Header><strong>Upcoming Session Info</strong></Card.Header>
-                <Card.Body>
-                  <p>Use "Schedule Session" above to initiate live attendance verification.</p>
-                  <p><strong>Future Features:</strong></p>
-                  <ul>
-                    <li>📸 Real-time image capturing</li>
-                    <li>📊 Attendance analytics</li>
-                    <li>📥 Download PDF reports</li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row className="mt-4">
-            <Col md={12}>
-              <Card className="dashboard-card">
-                <Card.Header><strong>✅ Approved Students</strong></Card.Header>
-                <ListGroup variant="flush">
-                  {approvedStudents.length === 0 ? (
-                    <ListGroup.Item>No students approved yet.</ListGroup.Item>
-                  ) : (
-                    approvedStudents.map((student, index) => (
-                      <ListGroup.Item key={index}>
-                        <strong>{student.name}</strong> ({student.email}) - Dept: {student.department}
-                      </ListGroup.Item>
-                    ))
-                  )}
-                </ListGroup>
-              </Card>
-            </Col>
-          </Row>
-        </Container>
+    <Container className="mt-4 admin-dashboard-bg">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3>Welcome, {admin.name}</h3>
+          <p className="text-muted">Email: {admin.email}</p>
+        </div>
+        <Button variant="outline-danger" onClick={logout}>Logout</Button>
       </div>
 
-      <Modal show={showSessionModal} onHide={() => setShowSessionModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>📅 Schedule a Session</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group>
-              <Form.Label>Session Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="e.g., DBMS Lecture"
-                onChange={(e) => setSession({ ...session, name: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Start Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                onChange={(e) => setSession({ ...session, start: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>End Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                onChange={(e) => setSession({ ...session, end: e.target.value })}
-              />
-            </Form.Group>
-
-            <Form.Label>Camera Access Intervals</Form.Label>
-            {session.intervals.map((interval, index) => (
-              <Form.Group key={index}>
-                <Form.Control
-                  type="time"
-                  value={interval}
-                  onChange={(e) => handleSessionIntervals(e, index)}
-                />
-              </Form.Group>
+      <Tabs defaultActiveKey="host" className="mb-3" fill>
+        {/* Host Session */}
+        <Tab eventKey="host" title="📡 Host Session">
+          <div className="mb-3">
+            <button onClick={() => navigate('/admin/host-session')}>
+              Go to Host Session
+            </button>
+          </div>
+          <h5>Registered Students</h5>
+          <ul className="list-group">
+            {students.map(student => (
+              <li key={student.id} className="list-group-item">
+                {student.name} - {student.email}
+              </li>
             ))}
-            <Button variant="link" onClick={addSessionInterval}>+ Add More Intervals</Button>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowSessionModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleStartSession}>Start Session</Button>
-        </Modal.Footer>
-      </Modal>
-    </>
+          </ul>
+        </Tab>
+
+        {/* Pending Approvals */}
+        <Tab eventKey="pending" title="🕓 Pending Approvals">
+          {pending.length === 0 ? <p>No pending students</p> : (
+            <ul className="list-group">
+              {pending.map(student => (
+                <li key={student.id} className="list-group-item d-flex justify-content-between align-items-center">
+                  {student.name} - {student.email}
+                  <Button size="sm" onClick={() => approveStudent(student.id)}>Approve</Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Tab>
+
+        {/* Session History */}
+        <Tab eventKey="history" title="📁 Session History">
+          <p>(To be implemented: fetch attendance session records)</p>
+        </Tab>
+
+        {/* Performance Charts */}
+        <Tab eventKey="charts" title="📊 Performance Charts">
+          <p>(To be implemented: graphical attendance patterns)</p>
+        </Tab>
+      </Tabs>
+    </Container>
   );
 };
 

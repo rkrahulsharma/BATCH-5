@@ -1,0 +1,8 @@
+.container {
+    max-width: 900px;
+    margin: auto;
+  }
+  
+  input.form-control {
+    margin-bottom: 10px;
+  }

@@ -4,6 +4,9 @@ import axios from 'axios';
 import { Tab, Tabs } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import AdminTab from '../components/AdminTab.jsx';
+import StudentTabComponent from '../components/StudentTabComponent.jsx';
+
+console.log("StudentTab:", StudentTabComponent);
 const SuperAdminDashboard = () => {
   const [key, setKey] = useState('admins');
   const [profile, setProfile] = useState({});
@@ -43,8 +46,9 @@ const SuperAdminDashboard = () => {
             <AdminTab /> {/* Moved here */}
           </Tab>
           <Tab eventKey="students" title="Students">
-            <div>Pending and Approved Students Table (next step)</div>
-          </Tab>
+  <StudentTabComponent />
+  
+</Tab>
           <Tab eventKey="sessions" title="Sessions">
             <div>Session History Table (next step)</div>
           </Tab>

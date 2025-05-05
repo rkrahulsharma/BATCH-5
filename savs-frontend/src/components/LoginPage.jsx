@@ -22,35 +22,44 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Dynamically determine the endpoint
       let endpoint = '';
   
       if (formData.role === 'superadmin') {
         endpoint = '/api/superadmin/login';
       } else {
-        endpoint = '/api/auth/login';
+        endpoint = '/api/login';
       }
   
-      const res = await axios.post(`http://localhost:5000${endpoint}`, formData);
+      const res = await axios.post(`http://localhost:5000${endpoint}`, formData, {
+        headers: { 'Content-Type': 'application/json' }
+      });
   
       alert(res.data.message);
   
       const user = res.data.user;
+      
       localStorage.setItem("userData", JSON.stringify(user));
-  
+      console.log("Stored user:", user);
+
       if (user.role === 'superadmin') {
         navigate('/super-admin-panel');
       } else if (user.role === 'admin') {
-        localStorage.setItem("adminData", JSON.stringify(user));
         navigate('/admin/dashboard');
       } else {
         navigate('/student/dashboard');
       }
+  
     } catch (err) {
-      console.error(err);  // Add this to see actual issue
-      alert(err.response?.data?.message || "Login failed");
+      console.error("Login Error:", err);
+      if (err.response && err.response.data && err.response.data.message) {
+        alert(err.response.data.message); // Shows specific server message
+      } else {
+        alert("Server error. Please try again later.");
+      }
     }
   };
+  
+
   
 
   const handleSignupRedirect = () => {

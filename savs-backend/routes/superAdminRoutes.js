@@ -1,3 +1,4 @@
+const sendEmail = require('../utils/emailService');
 const express = require('express');
 const router = express.Router();
 const db = require('../db');

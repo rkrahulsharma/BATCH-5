@@ -1,80 +1,92 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Table, Button, Spinner, Alert } from 'react-bootstrap';
 
 const AdminTab = () => {
-  const [pending, setPending] = useState([]);
-  const [approved, setApproved] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    fetchAdmins();
   }, []);
 
-  const fetchData = async () => {
-    const pend = await axios.get("http://localhost:5000/api/superadmin/pending-admins");
-    const appr = await axios.get("http://localhost:5000/api/superadmin/approved-admins");
-    setPending(pend.data);
-    setApproved(appr.data);
+  const fetchAdmins = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get('http://localhost:5000/api/superadmin/admins');
+      setAdmins(res.data);
+    } catch (err) {
+      console.error("Error fetching admins:", err);
+    }
+    setLoading(false);
   };
 
-  const handleApprove = async (admin) => {
-    await axios.post(`http://localhost:5000/api/superadmin/approve-admin/${admin.id}`, {
-      email: admin.email,
-    });
-    fetchData();
+  const approveAdmin = async (id) => {
+    if (window.confirm("Are you sure you want to approve this admin?")) {
+      try {
+        await axios.put(`http://localhost:5000/api/superadmin/admins/${id}/approve`);
+        fetchAdmins(); // Refresh list
+      } catch (err) {
+        console.error("Error approving admin:", err);
+      }
+    }
   };
 
-  const handleReject = async (admin) => {
-    await axios.delete(`http://localhost:5000/api/superadmin/reject-admin/${admin.id}`, {
-      data: { email: admin.email },
-    });
-    fetchData();
+  const rejectAdmin = async (id) => {
+    if (window.confirm("Are you sure you want to reject/delete this admin?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/superadmin/admins/${id}`);
+        fetchAdmins(); // Refresh list
+      } catch (err) {
+        console.error("Error rejecting admin:", err);
+      }
+    }
   };
+
+  if (loading) {
+    return <Spinner animation="border" role="status"><span className="visually-hidden">Loading...</span></Spinner>;
+  }
 
   return (
     <div>
-      <h4>Pending Admins</h4>
-      <table className="table table-bordered">
-        <thead>
-          <tr>
-            <th>Photo</th><th>Name</th><th>Email</th><th>Dept</th><th>College</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pending.map((a) => (
-            <tr key={a.id}>
-              <td><img src={`http://localhost:5000/uploads/${a.profile_photo}`} width="50" /></td>
-              <td>{a.name}</td>
-              <td>{a.email}</td>
-              <td>{a.department}</td>
-              <td>{a.college}</td>
-              <td>
-                <button className="btn btn-success btn-sm me-2" onClick={() => handleApprove(a)}>Approve</button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleReject(a)}>Reject</button>
-              </td>
+      <h5>Admins</h5>
+      {admins.length === 0 ? (
+        <Alert variant="info">No admins found.</Alert>
+      ) : (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Dept</th>
+              <th>College</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <h4>Approved Admins (Total: {approved.length})</h4>
-      <table className="table table-bordered">
-        <thead>
-          <tr>
-            <th>Photo</th><th>Name</th><th>Email</th><th>Dept</th><th>College</th>
-          </tr>
-        </thead>
-        <tbody>
-          {approved.map((a) => (
-            <tr key={a.id}>
-              <td><img src={`http://localhost:5000/uploads/${a.profile_photo}`} width="50" /></td>
-              <td>{a.name}</td>
-              <td>{a.email}</td>
-              <td>{a.department}</td>
-              <td>{a.college}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {admins.map((admin) => (
+              <tr key={admin.id}>
+                <td>{admin.name}</td>
+                <td>{admin.email}</td>
+                <td>{admin.department}</td>
+                <td>{admin.college}</td>
+                <td>{admin.is_approved ? 'Approved' : 'Pending'}</td>
+                <td>
+                  {!admin.is_approved ? (
+                    <>
+                      <Button size="sm" variant="success" onClick={() => approveAdmin(admin.id)}>Approve</Button>{' '}
+                      <Button size="sm" variant="danger" onClick={() => rejectAdmin(admin.id)}>Reject</Button>
+                    </>
+                  ) : (
+                    <span>—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </div>
   );
 };
