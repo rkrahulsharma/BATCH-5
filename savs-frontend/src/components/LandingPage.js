@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './LandingPage.css';
-import bg from '../assets/bg.png';
+
 import gif from '../assets/down-arrow.gif';
 import { useNavigate } from 'react-router-dom';
 
